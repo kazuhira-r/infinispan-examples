@@ -1,0 +1,28 @@
+apply plugin: 'scala'
+apply plugin: 'application'
+
+targetCompatibility = 1.7
+
+// mainClassName = 'EmbeddedModeClient'
+mainClassName = 'HotRodModeClient'
+
+repositories {
+    mavenCentral()
+
+    maven {
+        url 'http://repository.jboss.org/nexus/content/groups/public-jboss/'
+    }
+}
+
+dependencies {
+    compile 'org.scala-lang:scala-library:2.10.0'
+    compile 'org.infinispan:infinispan-client-hotrod:5.2.0.Final'
+}
+
+/*
+compileScala {
+    //scalaCompileOptions.useCompileDaemon = true
+    //scalaCompileOptions.daemonServer = "localhost:4243"
+    scalaCompileOptions.useAnt = false
+}
+*/

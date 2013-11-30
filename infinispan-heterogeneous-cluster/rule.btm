@@ -1,0 +1,24 @@
+RULE trace hashfactory updateMembers
+INTERFACE org.infinispan.distribution.ch.ConsistentHashFactory
+METHOD updateMembers
+AT ENTRY
+IF TRUE
+  DO traceln("====== [" + $0.getClass() + "] Enter updateMembers = " + $2 + ", " + $3)
+ENDRULE
+
+RULE trace hashfactory create
+INTERFACE org.infinispan.distribution.ch.ConsistentHashFactory
+METHOD create
+AT ENTRY
+IF TRUE
+  DO traceln("====== [" + $0.getClass() + "] Enter create = " + $4 + ", " + $5)
+ENDRULE
+
+RULE trace clusterCacheStatus addMember
+CLASS org.infinispan.topology.ClusterCacheStatus
+METHOD addMember
+AT ENTRY
+IF TRUE
+  DO traceln("====== [" + $0.getClass() + "] Enter addMember = " + $1 + ", " + $2 + ", " + $0.joinInfo.getCapacityFactor())
+ENDRULE
+

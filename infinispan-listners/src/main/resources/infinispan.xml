@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<infinispan
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="urn:infinispan:config:5.3 http://www.infinispan.org/schemas/infinispan-config-5.3.xsd"
+    xmlns="urn:infinispan:config:5.3">
+
+  <global>
+    <transport clusterName="listenres-cluster">
+      <properties>
+        <property name="configurationFile" value="jgroups.xml" />
+      </properties>
+    </transport>
+    <globalJmxStatistics
+        enabled="true"
+        jmxDomain="org.infinispan"
+        cacheManagerName="DefaultCacheManager"
+        />
+
+    <asyncListenerExecutor factory="org.infinispan.executors.DefaultExecutorFactory">
+      <properties>
+        <property name="maxThreads" value="5"/>
+        <property name="threadNamePrefix" value="AsyncListenerThread"/>
+      </properties>
+    </asyncListenerExecutor>
+  </global>
+
+  <namedCache name="listenersCache">
+    <jmxStatistics enabled="true"/>
+
+    <!--
+    <clustering mode="invalidation" />
+    -->
+
+    <!--
+    <clustering mode="replication" />
+    -->
+
+    <clustering mode="distribution">
+      <hash numOwners="2" />
+      <sync />
+    </clustering>
+
+    <eviction strategy="LIRS" maxEntries="2" />
+    <loaders passivation="false" shared="false" preload="true">
+      <loader class="org.infinispan.loaders.file.FileCacheStore"
+              fetchPersistentState="false" ignoreModifications="false"
+              purgeOnStartup="false">
+        <properties>
+          <property name="location" value="cache-store-${nodeId}" />
+        </properties>
+      </loader>
+    </loaders>
+
+    <transaction
+        transactionManagerLookupClass="org.infinispan.transaction.lookup.GenericTransactionManagerLookup"
+        transactionMode="TRANSACTIONAL"
+        lockingMode="OPTIMISTIC"
+        autoCommit="true" />
+  </namedCache>
+</infinispan>

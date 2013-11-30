@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<infinispan
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="urn:infinispan:config:5.3 http://www.infinispan.org/schemas/infinispan-config-5.3.xsd"
+    xmlns="urn:infinispan:config:5.3">
+
+  <global>
+    <transport clusterName="configuration-cluster">
+      <properties>
+        <property name="configurationFile" value="jgroups.xml" />
+      </properties>
+    </transport>
+    <globalJmxStatistics
+        enabled="true"
+        jmxDomain="org.infinispan"
+        cacheManagerName="DefaultCacheManager"
+        />
+  </global>
+
+  <default>
+    <clustering mode="distribution" />
+    <transaction
+        transactionManagerLookupClass="org.infinispan.transaction.lookup.GenericTransactionManagerLookup"
+        transactionMode="TRANSACTIONAL"
+        lockingMode="PESSIMISTIC"
+        autoCommit="true" />
+  </default>
+</infinispan>

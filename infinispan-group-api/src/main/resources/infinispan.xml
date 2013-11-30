@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<infinispan
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="urn:infinispan:config:5.3 http://www.infinispan.org/schemas/infinispan-config-5.3.xsd"
+    xmlns="urn:infinispan:config:5.3">
+
+  <global>
+    <transport clusterName="group-cluster">
+      <properties>
+        <property name="configurationFile" value="jgroups.xml" />
+      </properties>
+    </transport>
+    <globalJmxStatistics
+        enabled="true"
+        jmxDomain="org.infinispan"
+        cacheManagerName="DefaultCacheManager"
+        />
+  </global>
+
+  <namedCache name="cacheAsCustomizedKeyClass">
+    <jmxStatistics enabled="true" />
+    <clustering mode="distribution">
+      <hash numOwners="2">
+        <groups enabled="true" />
+      </hash>
+    </clustering>
+  </namedCache>
+
+  <namedCache name="cacheAsGrouper">
+    <jmxStatistics enabled="true" />
+    <clustering mode="distribution">
+      <hash numOwners="2">
+        <groups enabled="true">
+          <grouper class="MyGrouper" />
+        </groups>
+      </hash>
+    </clustering>
+  </namedCache>
+
+  <namedCache name="cacheAsGrouperSimple">
+    <jmxStatistics enabled="true" />
+    <clustering mode="distribution">
+      <hash numOwners="2">
+        <groups enabled="true">
+          <grouper class="SimpleGrouper" />
+        </groups>
+      </hash>
+    </clustering>
+  </namedCache>
+</infinispan>

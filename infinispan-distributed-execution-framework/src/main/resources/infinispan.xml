@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<infinispan
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="urn:infinispan:config:5.2 http://www.infinispan.org/schemas/infinispan-config-5.2.xsd"
+    xmlns="urn:infinispan:config:5.2">
+   
+  <global>
+    <transport clusterName="distributionFrameworkCluster">
+      <properties>
+        <property name="configurationFile" value="jgroups.xml" />
+      </properties>
+    </transport>
+    <globalJmxStatistics enabled="true"/>
+  </global>
+
+  <default>
+    <jmxStatistics enabled="true"/>
+    <clustering mode="distribution">
+      <hash numOwners="1" />
+      <sync />
+    </clustering>
+  </default>
+</infinispan>

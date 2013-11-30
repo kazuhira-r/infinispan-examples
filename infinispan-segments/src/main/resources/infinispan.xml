@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<infinispan
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="urn:infinispan:config:5.3 http://www.infinispan.org/schemas/infinispan-config-5.3.xsd"
+    xmlns="urn:infinispan:config:5.3">
+
+  <global>
+    <transport clusterName="segments-cluster">
+      <properties>
+        <property name="configurationFile" value="jgroups.xml" />
+      </properties>
+    </transport>
+    <globalJmxStatistics
+        enabled="true"
+        jmxDomain="org.infinispan"
+        cacheManagerName="DefaultCacheManager"
+        />
+  </global>
+
+  <namedCache name="cacheWithSegments">
+    <jmxStatistics enabled="true" />
+    <clustering mode="distribution">
+      <hash numOwners="2" numSegments="1" />
+    </clustering>
+  </namedCache>
+</infinispan>
