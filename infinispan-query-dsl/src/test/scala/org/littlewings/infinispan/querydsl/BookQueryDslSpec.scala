@@ -135,7 +135,7 @@ class BookQueryDslSpec extends FunSpec {
       }
     }
 
-    it("search like and in") {
+    it("search like and like") {
       withCache[String, Book]("infinispan.xml", "bookCache") { cache =>
         books.foreach(book => cache.put(book.isbn, book))
 
