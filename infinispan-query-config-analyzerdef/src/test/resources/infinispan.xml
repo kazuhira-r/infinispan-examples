@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<infinispan
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="urn:infinispan:config:6.0 http://www.infinispan.org/schemas/infinispan-config-6.0.xsd"
+    xmlns="urn:infinispan:config:6.0">
+
+  <global>
+    <transport clusterName="query-cluster">
+      <properties>
+        <property name="configurationFile" value="jgroups.xml" />
+      </properties>
+    </transport>
+
+    <globalJmxStatistics
+        enabled="true"
+        jmxDomain="org.infinispan"
+        cacheManagerName="DefaultCacheManager"
+        allowDuplicateDomains="true"
+        />
+
+    <shutdown hookBehavior="REGISTER"/>
+  </global>
+
+  <namedCache name="bookCache">
+    <clustering mode="dist" />
+
+    <indexing enabled="true" indexLocalOnly="true">
+      <properties>
+        <property name="default.directory_provider" value="infinispan" />
+        <property name="lucene_version" value="LUCENE_CURRENT" />
+
+        <property name="default.locking_cachename" value="My-LuceneIndexesLocking" />
+        <property name="default.data_cachename" value="My-LuceneIndexesData" />
+        <property name="default.metadata_cachename" value="My-LuceneIndexesMetadata" />
+
+        <!-- デフォルトでは、各Cacheの名前とチャンクサイズはこのような形
+        <property name="default.locking_cachename" value="LuceneIndexesLocking" />
+        <property name="default.data_cachename" value="LuceneIndexesData" />
+        <property name="default.metadata_cachename" value="LuceneIndexesMetadata" />
+        <property name="default.chunk_size" value="16384" />
+        -->
+      </properties>
+    </indexing>
+  </namedCache>
+
+  <!-- Lucene用のCacheの設定 -->
+  <namedCache name="My-LuceneIndexesLocking">
+    <clustering mode="repl">
+      <stateTransfer
+          fetchInMemoryState="true" />
+      <sync
+          replTimeout="25000" />
+    </clustering>
+
+    <locking
+        lockAcquisitionTimeout="20000"
+        writeSkewCheck="false"
+        concurrencyLevel="500"
+        useLockStriping="false" />
+
+    <invocationBatching
+        enabled="false" />
+
+    <eviction
+        maxEntries="-1"
+        strategy="NONE" />
+
+    <expiration
+        maxIdle="-1" />
+  </namedCache>
+
+  <namedCache name="My-LuceneIndexesData">
+    <clustering mode="dist">
+      <stateTransfer
+          fetchInMemoryState="true" />
+      <sync
+          replTimeout="25000" />
+    </clustering>
+
+    <locking
+        lockAcquisitionTimeout="20000"
+        writeSkewCheck="false"
+        concurrencyLevel="500"
+        useLockStriping="false" />
+
+    <invocationBatching
+        enabled="false" />
+
+    <eviction
+        maxEntries="-1"
+        strategy="NONE" />
+
+    <expiration
+        maxIdle="-1" />
+  </namedCache>
+
+  <namedCache name="My-LuceneIndexesMetadata">
+    <clustering mode="repl">
+      <stateTransfer
+          fetchInMemoryState="true" />
+      <sync
+          replTimeout="25000" />
+    </clustering>
+
+    <locking
+        lockAcquisitionTimeout="20000"
+        writeSkewCheck="false"
+        concurrencyLevel="500"
+        useLockStriping="false" />
+
+    <invocationBatching
+        enabled="false" />
+
+    <eviction
+        maxEntries="-1"
+        strategy="NONE" />
+
+    <expiration
+        maxIdle="-1" />
+  </namedCache>
+
+</infinispan>

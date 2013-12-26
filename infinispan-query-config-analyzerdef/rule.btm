@@ -1,0 +1,56 @@
+#RULE trace lucene
+#CLASS org.apache.lucene.store.Directory
+#METHOD ensureOpen
+#AT ENTRY
+#IF TRUE
+#  DO traceln("========== [" + $0.getClass().getName() + " =========="), traceStack()
+#ENDRULE
+
+RULE trace provider
+INTERFACE org.hibernate.search.engine.ServiceManager
+METHOD requestService
+AT RETURN
+IF TRUE
+  DO traceln("========== [" + $0.getClass().getName() + ", " + $1 + ", " + $! + " ==========")
+ENDRULE
+
+RULE trace hbs
+CLASS org.hibernate.search.infinispan.CacheManagerServiceProvider
+METHOD <init>
+AT ENTRY
+IF TRUE
+  DO traceln("========== [" + $0.getClass().getName() + "] ==========")
+ENDRULE
+
+#RULE trace hbs2
+#CLASS org.hibernate.search.infinispan.impl.InfinispanDirectoryProvider
+#METHOD initialize
+#AT ENTRY
+#IF TRUE
+#  DO traceln("========== [" + $0.getClass().getName() + ", " + $1 + ", " + $2 + ", " + $2.getProperty("hibernate.search.infinispan.configuration_resourcename")  + " ==========")
+#ENDRULE
+
+RULE trace hbs3
+INTERFACE org.hibernate.search.engine.ServiceManager
+METHOD requestService
+AT ENTRY
+  DO traceln("========== [" + $0.getClass().getName() + ", " + $1 + " ==========")
+ENDRULE
+
+RULE trace hbs4
+CLASS org.hibernate.search.infinispan.impl.InfinispanDirectoryProvider
+METHOD initialize
+AT ENTRY
+IF TRUE
+  DO traceln("========== [" + $3.getServiceManager().requestService(org.hibernate.search.infinispan.CacheManagerServiceProvider.class, $3).getClass().getName() + "] =========="),
+     traceln(org.hibernate.search.infinispan.InfinispanIntegration.getMetadataCacheName($2))
+ENDRULE
+
+RULE trace DefaultCacheManager
+CLASS org.infinispan.manager.DefaultCacheManager
+METHOD <init>(org.infinispan.configuration.parsing.ConfigurationBuilderHolder, boolean)
+AT ENTRY
+IF TRUE
+  DO traceln("========== [" + $0.getClass().getName() + ", " + $1 + " ==========")
+ENDRULE
+
