@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<infinispan
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="urn:infinispan:config:6.0 http://www.infinispan.org/schemas/infinispan-config-6.0.xsd"
+    xmlns="urn:infinispan:config:6.0">
+
+  <global>
+    <globalJmxStatistics
+        enabled="true"
+        jmxDomain="org.infinispan"
+        cacheManagerName="DefaultCacheManager"
+        allowDuplicateDomains="true"
+        />
+
+    <shutdown hookBehavior="REGISTER"/>
+  </global>
+
+  <namedCache name="optimisticReadCommittedReadCache">
+    <transaction
+        transactionMode="TRANSACTIONAL"
+        lockingMode="OPTIMISTIC"
+        autoCommit="false" />
+    <locking
+        isolationLevel="READ_COMMITTED"
+        lockAcquisitionTimeout="1000" />
+  </namedCache>
+
+  <namedCache name="optimisticRepeatableReadCache">
+    <transaction
+        transactionMode="TRANSACTIONAL"
+        lockingMode="OPTIMISTIC"
+        autoCommit="false" />
+    <versioning enabled="true" versioningScheme="SIMPLE" />
+    <locking
+        isolationLevel="REPEATABLE_READ"
+        lockAcquisitionTimeout="1000"
+        writeSkewCheck="true" />
+  </namedCache>
+
+  <namedCache name="pessimisticReadCommittedCache">
+    <transaction
+        transactionMode="TRANSACTIONAL"
+        lockingMode="PESSIMISTIC"
+        autoCommit="false" />
+    <locking
+        isolationLevel="READ_COMMITTED"
+        lockAcquisitionTimeout="1000" />
+  </namedCache>
+
+  <namedCache name="pessimisticRepeatableReadCache">
+    <transaction
+        transactionMode="TRANSACTIONAL"
+        lockingMode="PESSIMISTIC"
+        autoCommit="false" />
+    <locking
+        isolationLevel="REPEATABLE_READ"
+        lockAcquisitionTimeout="1000" />
+  </namedCache>
+
+</infinispan>
