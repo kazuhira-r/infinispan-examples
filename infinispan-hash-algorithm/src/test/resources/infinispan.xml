@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<infinispan
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="urn:infinispan:config:6.0 http://www.infinispan.org/schemas/infinispan-config-6.0.xsd"
+    xmlns="urn:infinispan:config:6.0">
+
+  <global>
+    <transport clusterName="hash-algorithm-cluster">
+      <properties>
+        <property name="configurationFile" value="jgroups.xml" />
+      </properties>
+    </transport>
+
+    <globalJmxStatistics
+        enabled="true"
+        jmxDomain="org.infinispan"
+        cacheManagerName="DefaultCacheManager"
+        allowDuplicateDomains="true"
+        />
+
+    <shutdown hookBehavior="REGISTER"/>
+  </global>
+
+  <namedCache name="singleSegmentCache">
+    <clustering mode="dist">
+      <hash numSegments="1" />
+    </clustering>
+  </namedCache>
+
+  <namedCache name="defaultCache">
+    <clustering mode="dist" />
+  </namedCache>
+
+  <namedCache name="defaultConsistentHashCache">
+    <clustering mode="dist">
+      <hash factory="org.infinispan.distribution.ch.DefaultConsistentHashFactory" />
+    </clustering>
+  </namedCache>
+
+  <namedCache name="syncConsistentHashCache">
+    <clustering mode="dist">
+      <hash factory="org.infinispan.distribution.ch.SyncConsistentHashFactory" />
+    </clustering>
+  </namedCache>
+
+</infinispan>
