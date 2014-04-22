@@ -1,5 +1,7 @@
 import scala.collection.JavaConverters._
 
+import scala.io.StdIn
+
 import org.infinispan.distribution.ch.DefaultConsistentHash
 import org.infinispan.manager.DefaultCacheManager
 
@@ -17,7 +19,7 @@ object NamedCacheClient {
         (1 to 10).map { i => (s"key$i", s"value$i") }.unzip
 
       Iterator
-        .continually(readLine())
+        .continually(StdIn.readLine())
         .takeWhile(_ != "exit")
         .withFilter(l => l != null & !l.isEmpty)
         .foreach { command =>
