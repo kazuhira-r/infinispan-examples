@@ -114,7 +114,7 @@ object InfinispanGridFilesystem {
 
       Iterator
         .continually(gridReadChannel.read(byteBuffer))
-        .takeWhile(len => (len != -1 && len != 0) || byteBuffer.position > 0)  // 最終的に、readの結果が0のままになる…
+        .takeWhile(len => (len != -1) || byteBuffer.position > 0)
         .foreach { len =>
           byteBuffer.flip()
           val charBuffer = StandardCharsets.UTF_8.decode(byteBuffer)
