@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<infinispan
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="urn:infinispan:config:6.0 http://www.infinispan.org/schemas/infinispan-config-6.0.xsd"
+    xmlns="urn:infinispan:config:6.0">
+
+  <global>
+    <transport clusterName="RemoteCacheStoreCluster">
+      <properties>
+        <property name="configurationFile" value="jgroups.xml" />
+      </properties>
+    </transport>
+    <globalJmxStatistics
+        enabled="true"
+        jmxDomain="org.infinispan"
+        cacheManagerName="DefaultCacheManager"
+        allowDuplicateDomains="true"
+        />
+
+    <shutdown hookBehavior="REGISTER"/>
+  </global>
+
+  <default />
+
+  <namedCache name="noStoreCache">
+    <clustering mode="dist" />
+  </namedCache>
+
+  <namedCache name="remoteStoreCache">
+    <clustering mode="dist" />
+    <persistence>
+      <remoteStore xmlns="urn:infinispan:config:remote:6.0"
+                   fetchPersistentState="false"
+                   ignoreModifications="false"
+                   purgeOnStartup="false"
+                   remoteCacheName="storeCache">
+        <servers>
+          <server host="localhost" port="11222" />
+          <server host="localhost" port="12222" />
+        </servers>
+        <connectionPool maxActive="10" exhaustedAction="CREATE_NEW" />
+        <async enabled="false" />
+      </remoteStore>
+    </persistence>
+  </namedCache>
+
+  <namedCache name="remoteStoreCacheAsRaw">
+    <clustering mode="dist" />
+    <persistence>
+      <remoteStore xmlns="urn:infinispan:config:remote:6.0"
+                   fetchPersistentState="false"
+                   ignoreModifications="false"
+                   purgeOnStartup="false"
+                   remoteCacheName="storeCacheAsRaw"
+                   rawValues="true">
+        <servers>
+          <server host="localhost" port="11222" />
+          <server host="localhost" port="12222" />
+        </servers>
+        <connectionPool maxActive="10" exhaustedAction="CREATE_NEW" />
+        <async enabled="false" />
+      </remoteStore>
+    </persistence>
+  </namedCache>
+</infinispan>
