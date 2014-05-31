@@ -26,5 +26,6 @@ libraryDependencies ++= Seq(
   "org.jboss.marshalling" % "jboss-marshalling" % "1.4.4.Final",
   "org.jboss.logging" % "jboss-logging" % "3.1.2.GA",
   "net.jcip" % "jcip-annotations" % "1.0",
-  "org.scalatest" %% "scalatest" % "2.1.7" % "test"
+  "org.scalatest" %% "scalatest" % "2.1.7" % "test",
+  "log4j" % "log4j" % "1.2.17" % "test"
 )
