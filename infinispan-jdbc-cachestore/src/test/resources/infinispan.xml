@@ -1,0 +1,154 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<infinispan
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="urn:infinispan:config:6.0 http://www.infinispan.org/schemas/infinispan-config-6.0.xsd"
+    xmlns="urn:infinispan:config:6.0">
+
+  <global>
+    <transport clusterName="JdbcCacheStoreCluster">
+      <properties>
+        <property name="configurationFile" value="jgroups.xml" />
+      </properties>
+    </transport>
+    <globalJmxStatistics
+        enabled="true"
+        jmxDomain="org.infinispan"
+        cacheManagerName="DefaultCacheManager"
+        allowDuplicateDomains="true"
+        />
+
+    <shutdown hookBehavior="REGISTER"/>
+  </global>
+
+  <default />
+
+  <namedCache name="noStoreCache">
+    <clustering mode="dist" />
+  </namedCache>
+
+  <namedCache name="jdbcStringBasedStoreCache">
+    <clustering mode="dist" />
+
+    <!--
+    <expiration lifespan="60000" />
+    -->
+
+    <persistence>
+      <stringKeyedJdbcStore xmlns="urn:infinispan:config:jdbc:6.0"
+                            fetchPersistentState="false"
+                            ignoreModifications="false">
+        <simpleConnection connectionUrl="jdbc:mysql://localhost/test?useUnicode=true&amp;characterEncoding=utf8"
+                          driverClass="com.mysql.jdbc.Driver"
+                          username="kazuhira"
+                          password="password"
+                          />
+        <stringKeyedTable prefix="ispn_string_based"
+                          createOnStart="true"
+                          dropOnExit="false">
+          <idColumn name="id" type="VARCHAR(10)" />
+          <dataColumn name="data" type="BLOB" />
+          <timestampColumn name="expire" type="BIGINT" />
+        </stringKeyedTable>
+      </stringKeyedJdbcStore>
+    </persistence>
+  </namedCache>
+
+  <namedCache name="jdbcStringBasedStoreCacheNoStringKey">
+    <clustering mode="dist" />
+    <persistence>
+      <stringKeyedJdbcStore xmlns="urn:infinispan:config:jdbc:6.0"
+                            fetchPersistentState="false"
+                            ignoreModifications="false"
+                            key2StringMapper="org.littlewings.infinispan.jdbccachestore.TwoWayKeyClass2StringMapper">
+        <simpleConnection connectionUrl="jdbc:mysql://localhost/test?useUnicode=true&amp;characterEncoding=utf8"
+                          driverClass="com.mysql.jdbc.Driver"
+                          username="kazuhira"
+                          password="password"
+                          />
+        <stringKeyedTable prefix="ispn_string_based"
+                          createOnStart="true"
+                          dropOnExit="false">
+          <idColumn name="id" type="VARCHAR(10)" />
+          <dataColumn name="data" type="BLOB" />
+          <timestampColumn name="expire" type="BIGINT" />
+        </stringKeyedTable>
+      </stringKeyedJdbcStore>
+    </persistence>
+  </namedCache>
+
+  <namedCache name="jdbcBinaryStoreCache">
+    <clustering mode="dist" />
+
+    <persistence>
+      <binaryKeyedJdbcStore xmlns="urn:infinispan:config:jdbc:6.0"
+                            fetchPersistentState="true"
+                            ignoreModifications="false">
+        <simpleConnection connectionUrl="jdbc:mysql://localhost/test?useUnicode=true&amp;characterEncoding=utf8"
+                          driverClass="com.mysql.jdbc.Driver"
+                          username="kazuhira"
+                          password="password"
+                          />
+        <binaryKeyedTable prefix="ispn_binary"
+                          createOnStart="true"
+                          dropOnExit="false">
+          <idColumn name="id" type="VARCHAR(255)" />
+          <dataColumn name="data" type="BLOB" />
+          <timestampColumn name="expire" type="BIGINT" />
+        </binaryKeyedTable>
+      </binaryKeyedJdbcStore>
+    </persistence>
+  </namedCache>
+
+  <namedCache name="jdbcBinaryStoreCacheNoStringKey">
+    <clustering mode="dist" />
+
+    <persistence>
+      <binaryKeyedJdbcStore xmlns="urn:infinispan:config:jdbc:6.0"
+                            fetchPersistentState="true"
+                            ignoreModifications="false">
+        <simpleConnection connectionUrl="jdbc:mysql://localhost/test?useUnicode=true&amp;characterEncoding=utf8"
+                          driverClass="com.mysql.jdbc.Driver"
+                          username="kazuhira"
+                          password="password"
+                          />
+        <binaryKeyedTable prefix="ispn_binary"
+                          createOnStart="true"
+                          dropOnExit="false">
+          <idColumn name="id" type="VARCHAR(255)" />
+          <dataColumn name="data" type="BLOB" />
+          <timestampColumn name="expire" type="BIGINT" />
+        </binaryKeyedTable>
+      </binaryKeyedJdbcStore>
+    </persistence>
+  </namedCache>
+
+  <namedCache name="jdbcMixedStoreCache">
+    <clustering mode="dist" />
+
+    <persistence>
+      <mixedKeyedJdbcStore xmlns="urn:infinispan:config:jdbc:6.0"
+                            fetchPersistentState="false"
+                            ignoreModifications="false">
+        <simpleConnection connectionUrl="jdbc:mysql://localhost/test?useUnicode=true&amp;characterEncoding=utf8"
+                          driverClass="com.mysql.jdbc.Driver"
+                          username="kazuhira"
+                          password="password"
+                          />
+        <stringKeyedTable prefix="ispn_mixed_s"
+                          createOnStart="true"
+                          dropOnExit="false">
+          <idColumn name="id" type="VARCHAR(10)" />
+          <dataColumn name="data" type="BLOB" />
+          <timestampColumn name="expire" type="BIGINT" />
+        </stringKeyedTable>
+        <binaryKeyedTable prefix="ispn_mixed_b"
+                          createOnStart="true"
+                          dropOnExit="false">
+          <idColumn name="id" type="VARCHAR(255)" />
+          <dataColumn name="data" type="BLOB" />
+          <timestampColumn name="expire" type="BIGINT" />
+        </binaryKeyedTable>
+      </mixedKeyedJdbcStore>
+    </persistence>
+  </namedCache>
+</infinispan>
