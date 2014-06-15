@@ -85,7 +85,7 @@ object InfinispanVelocityPractice extends Build {
     Project("infinispan-velocity-practice",
             file("."),
             settings = buildSettings)
-      .aggregate(templatePublisher)
+      .aggregate(templatePublisher, webView)
 
   lazy val templatePublisher =
     Project("template-publisher",
