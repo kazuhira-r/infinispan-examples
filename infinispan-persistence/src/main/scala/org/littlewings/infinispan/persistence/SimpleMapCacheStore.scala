@@ -113,7 +113,7 @@ class SimpleMapCacheStore[K, V] extends AdvancedCacheLoader[K, V] with AdvancedC
     load(key, true, true)
 
   def load(key: K, fetchValue: Boolean, fetchMetadata: Boolean): MarshalledEntry[K, V] = {
-    println(s"Store[$storeName], try load key[$key], fetchValue[$fetchValue], fetchMetadata[$fetchMetadata]")
+    println(s"Store[$storeName] try load key[$key], fetchValue[$fetchValue], fetchMetadata[$fetchMetadata]")
 
     val value = store.get(key)
 
@@ -157,14 +157,14 @@ class SimpleMapCacheStore[K, V] extends AdvancedCacheLoader[K, V] with AdvancedC
           marshalledEntry
         }
       case None =>
-        println(s"Store[$storeName], missing key[$key]")
+        println(s"Store[$storeName] missing key[$key]")
         null
     }
   }
 
   // from CacheWriter
   override def write(entry: MarshalledEntry[K, V]): Unit = {
-    println(s"Store[$storeName], write (key, value) = (${entry.getKey}, ${entry.getValue})")
+    println(s"Store[$storeName] write (key, value) = (${entry.getKey}, ${entry.getValue})")
     store += (entry.getKey -> (entry.getValue -> entry.getMetadataBytes.getBuf))
   }
 
