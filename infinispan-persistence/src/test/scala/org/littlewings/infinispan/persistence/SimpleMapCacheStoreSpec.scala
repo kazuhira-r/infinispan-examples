@@ -10,17 +10,26 @@ import org.scalatest.Matchers._
 class SimpleMapCacheStoreSpec extends FunSpec {
   describe("simple map cache store spec") {
     it("persistence") {
-      val numInstances = 2
+      val storeSize = 2
+      val numInstances = 1
 
-      SimpleMapCacheStore.instances(numInstances)
+      SimpleMapCacheStore.instances(storeSize)
       withStoreCache[String, String]("storeCache", numInstances) { cache =>
         println(s"Cache size => ${cache.size}")
 
         val range = 1 to 10
 
+        (1 to 3).foreach(i => cache.remove(s"key$i"))
+        (4 to 6).foreach(i => cache.put(s"key$i", "valueXXXXX"))
+
         range.foreach(i => println(s"key[${s"key$i"}] => ${cache.get(s"key$i")}"))
 
-        (1 to 10) foreach (i => cache.put(s"key$i", s"value$i"))
+        withStoreCache[String, String]("storeCache", numInstances) { cache2 =>
+          range.foreach(i => println(s"key[${s"key$i"}] => ${cache2.get(s"key$i")}"))
+          (1 to 10) foreach (i => cache2.put(s"key$i", s"value$i"))
+        }
+        
+        // (1 to 10) foreach (i => cache.put(s"key$i", s"value$i"))
 
         /*
         println("Wait...")
