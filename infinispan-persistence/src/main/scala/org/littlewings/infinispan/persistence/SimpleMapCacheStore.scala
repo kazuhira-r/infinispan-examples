@@ -170,7 +170,7 @@ class SimpleMapCacheStore[K, V] extends AdvancedCacheLoader[K, V] with AdvancedC
 
   // from CacheWriter
   override def delete(key: K): Boolean = {
-    println(s"Store[$storeName], remove[$key]")
+    println(s"Store[$storeName] remove[$key]")
 
     if (store.contains(key)) {
       store -= key
