@@ -21,6 +21,13 @@ class SimpleMapCacheStoreSpec extends FunSpec {
         range.foreach(i => println(s"key[${s"key$i"}] => ${cache.get(s"key$i")}"))
 
         (1 to 10) foreach (i => cache.put(s"key$i", s"value$i"))
+
+        /*
+        println("Wait...")
+        Thread.sleep(5000L)
+
+        range.foreach(i => println(s"key[${s"key$i"}] => ${cache.get(s"key$i")}"))
+        */
       }
     }
   }
@@ -33,6 +40,9 @@ class SimpleMapCacheStoreSpec extends FunSpec {
       val persistenceBuilder = new ConfigurationBuilder()
         .clustering
         .cacheMode(CacheMode.DIST_SYNC)
+        .expiration
+        // .maxIdle(3000L)
+        // .wakeUpInterval(500L)
         .persistence
 
       manager.defineConfiguration(cacheName,

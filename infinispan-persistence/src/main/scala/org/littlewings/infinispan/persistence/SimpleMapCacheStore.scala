@@ -4,13 +4,15 @@ import scala.collection._
 
 import java.io._
 import java.nio.file.{Files, Paths}
-import java.util.concurrent.Executor
+import java.util.concurrent.{Callable, Executor}
 
 import org.infinispan.commons.io.ByteBuffer
+import org.infinispan.executors.ExecutorAllCompletionService
 import org.infinispan.marshall.core.MarshalledEntry
 import org.infinispan.metadata.InternalMetadata
-import org.infinispan.persistence.spi.{CacheLoader, CacheWriter, ExternalStore, InitializationContext}
-//import org.infinispan.persistence.spi.{AdvancedCacheLoader, AdvancedCacheWriter, AdvancedLoadWriteStore, InitializationContext}
+// import org.infinispan.persistence.spi.{CacheLoader, CacheWriter, ExternalStore, InitializationContext}
+import org.infinispan.persistence.spi.{AdvancedCacheLoader, AdvancedCacheWriter, AdvancedLoadWriteStore, InitializationContext, PersistenceException}
+import org.infinispan.persistence.{PersistenceUtil, TaskContextImpl}
 
 object SimpleMapCacheStore {
   private var numberOfCluster: Int = 1
@@ -38,9 +40,10 @@ object SimpleMapCacheStore {
   }
 }
 
-class SimpleMapCacheStore[K, V] extends CacheLoader[K, V] with CacheWriter[K, V] {
+// class SimpleMapCacheStore[K, V] extends CacheLoader[K, V] with CacheWriter[K, V] {
 // class SimpleMapCacheStore[K, V] extends ExternalStore[K, V] {  // こちらでも可
-// class SimpleMapCacheStore[K, V] extends AdvancedLoadWriteStore[K, V] {
+class SimpleMapCacheStore[K, V] extends AdvancedCacheLoader[K, V] with AdvancedCacheWriter[K, V] {
+// class SimpleMapCacheStore[K, V] extends AdvancedLoadWriteStore[K, V] {  // こちらでも可
   private var store: mutable.Map[K,(V, Array[Byte])] = mutable.HashMap.empty
   private var storeName: String = _
 
@@ -72,7 +75,6 @@ class SimpleMapCacheStore[K, V] extends CacheLoader[K, V] with CacheWriter[K, V]
   // from Lifecyele
   override def stop(): Unit = {
     if (!store.isEmpty) {
-
       val path = Paths.get(storeName)
       val os = new ObjectOutputStream(new BufferedOutputStream(Files.newOutputStream(path)))
 
@@ -84,6 +86,9 @@ class SimpleMapCacheStore[K, V] extends CacheLoader[K, V] with CacheWriter[K, V]
 
       println(s"Store[$storeName] saved, keys = ${store.keys}")
     } else {
+      val path = Paths.get(storeName)
+      Files.deleteIfExists(path)
+
       println(s"Store[$storeName] is empty.")
     }
   }
@@ -108,7 +113,7 @@ class SimpleMapCacheStore[K, V] extends CacheLoader[K, V] with CacheWriter[K, V]
     load(key, true, true)
 
   def load(key: K, fetchValue: Boolean, fetchMetadata: Boolean): MarshalledEntry[K, V] = {
-    println(s"Store[$storeName], try load key[$key]")
+    println(s"Store[$storeName], try load key[$key], fetchValue[$fetchValue], fetchMetadata[$fetchMetadata]")
 
     val value = store.get(key)
 
@@ -135,10 +140,22 @@ class SimpleMapCacheStore[K, V] extends CacheLoader[K, V] with CacheWriter[K, V]
           else
             null
 
-        ctx
-          .getMarshalledEntryFactory
-          .newMarshalledEntry(keyBuffer, valueBuffer, metaBuffer)
-          .asInstanceOf[MarshalledEntry[K, V]]
+        val marshalledEntry =
+          ctx
+            .getMarshalledEntryFactory
+            .newMarshalledEntry(keyBuffer, valueBuffer, metaBuffer)
+            .asInstanceOf[MarshalledEntry[K, V]]
+
+        val now = System.currentTimeMillis
+        val metadata = marshalledEntry.getMetadata
+
+        if (metadata != null && metadata.isExpired(now)) {
+          println(s"Store[$storeName] loaded, but expire entry, key[$key]")
+          store -= key
+          null
+        } else {
+          marshalledEntry
+        }
       case None =>
         println(s"Store[$storeName], missing key[$key]")
         null
@@ -163,14 +180,48 @@ class SimpleMapCacheStore[K, V] extends CacheLoader[K, V] with CacheWriter[K, V]
     }
   }
 
-  /*
   // from AdvancedCacheLoader
   override def process(filter: AdvancedCacheLoader.KeyFilter[K],
                        task: AdvancedCacheLoader.CacheLoaderTask[K, V],
                        executor: Executor,
                        fetchValue: Boolean,
                        fetchMetadata: Boolean): Unit = {
-    println(s"Store[$storeName] process")
+    println(s"Store[$storeName] process, fetchValue[$fetchValue], fetchMetadata[$fetchMetadata]")
+
+    val filterOrLoadAll =
+      PersistenceUtil.notNull(filter).asInstanceOf[AdvancedCacheLoader.KeyFilter[K]]
+
+    val eacs = new ExecutorAllCompletionService(executor)
+    val taskContext = new TaskContextImpl
+
+    store
+      .keys
+      .withFilter { k =>
+          filterOrLoadAll.shouldLoadKey(k)
+      }
+      .foreach { k =>
+        if (!taskContext.isStopped) {
+          eacs.submit(new Callable[Void] {
+            @throws(classOf[Exception])
+            override def call(): Void = {
+              val marshalledEntry = load(k, fetchValue, fetchMetadata)
+
+              if (marshalledEntry != null) {
+                println(s"Store[$storeName] loaded key[$k], on process")
+                task.processEntry(marshalledEntry, taskContext)
+              }
+
+              null
+            }
+          })
+        }
+      }
+
+    eacs.waitUntilAllCompleted()
+
+    if (eacs.isExceptionThrown()) {
+      throw new PersistenceException("Execution exception!", eacs.getFirstException());
+    }
   }
 
   // from AdvancedCacheLoader
@@ -189,6 +240,39 @@ class SimpleMapCacheStore[K, V] extends CacheLoader[K, V] with CacheWriter[K, V]
   override def purge(executor: Executor,
                      listener: AdvancedCacheWriter.PurgeListener[_]): Unit = {
     println(s"Store[$storeName] purge")
+
+    executor.execute(new Runnable {
+      override def run(): Unit = {
+        val now = System.currentTimeMillis
+        val marshaller = ctx.getMarshaller
+        val factory = ctx.getByteBufferFactory
+        val marshalledEntryFactory = ctx.getMarshalledEntryFactory
+
+        store.foreach { case (k, (v, m)) =>
+          val (kb, vb, mb) =
+            (marshaller.objectToByteBuffer(k), marshaller.objectToByteBuffer(v), m)
+          val (keyBuffer, valueBuffer, metaBuffer) =
+            (factory.newByteBuffer(kb, 0, kb.size),
+             factory.newByteBuffer(vb, 0, vb.size),
+             factory.newByteBuffer(mb, 0, mb.size))
+
+          val marshalledEntry =
+            marshalledEntryFactory
+              .newMarshalledEntry(keyBuffer, valueBuffer, metaBuffer)
+
+          if (marshalledEntry.getMetadata.isExpired(now)) {
+            println(s"Store[$storeName] purge key[$k]")
+            store -= k
+
+            if (listener != null) {
+              println(s"Store[$storeName] listner nofiticate, key[$k]")
+              val task =
+                listener.asInstanceOf[AdvancedCacheWriter.PurgeListener[K]]
+              task.entryPurged(k)
+            }
+          }
+        }
+      }
+    })
   }
-  */
 }
